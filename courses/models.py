@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse # Used to genereate URLs by reversing the URL patterns
+import datetime
 
 
 # Create your models here.
@@ -10,6 +11,34 @@ class Topic(models.Model):
     def __str__(self):
         """String for representing the Topic Model object."""
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('topic-detail', args=[str(self.id)])
+
+class Track(models.Model):
+    """Model representing the language tracks that each course belongs to."""
+    # LANGUAGES = (
+    #     ('py', 'Python'),
+    #     ('pe', 'Perl'),
+    #     ('ja', 'Java'),
+    #     ('cpp', 'C++'),
+    #     ('js', 'Javascript'),
+    #     ('sc', 'Scala'),
+    #     ('php', 'PHP'),
+    #     ('csh', 'C#'),
+    #     ('go', 'Go'),
+    #     ('ht', 'HTML'),
+    #     ('hsk', 'Haskell'),
+    # )
+    language = models.CharField(max_length=25, help_text='The programming language the course is being taught in.')
+
+    def __str__(self):
+        """String representing the Track Model object."""
+        return self.language
+
+    # def get_absolute_url(self):
+    #     """Returns the url to access a detail record for this track."""
+    #     return reverse('track-detail', args=[str(self.id)])
 
 
 class Course(models.Model):
@@ -22,7 +51,7 @@ class Course(models.Model):
     # declared yet in the file
     teacher = models.ForeignKey('Teacher', on_delete=models.SET_NULL, null=True)
     topics = models.ManyToManyField(Topic, help_text='Select all relevant topics to this course.')
-
+    track = models.ForeignKey(Track, on_delete=models.SET_NULL, null=True, help_text='The language this course is being taught in.')
     LEVEL = (
         ('a', 'Advanced'),
         ('i', 'Intermediate'),
@@ -38,26 +67,10 @@ class Course(models.Model):
         help_text='The level of difficulty of the course.',
     )
 
-    LANGUAGES = (
-        ('py', 'Python'),
-        ('pe', 'Perl'),
-        ('ja', 'Java'),
-        ('cpp', 'C++'),
-        ('js', 'Javascript'),
-        ('sc', 'Scala'),
-        ('php', 'PHP'),
-        ('csh', 'C#'),
-        ('go', 'Go'),
-        ('ht', 'HTML'),
-        ('hsk', 'Haskell'),
-    )
-
-    track = models.CharField(
-        max_length=3,
-        choices=LANGUAGES,
-        blank=True,
-        help_text='The programming language the course is being taught in.',
-    )
+    def display_topic(self):
+        """Create a string for the Topic. This is required to display topic in Admin."""
+        return ', '.join(topic.name for topic in self.topics.all()[:3])
+    display_topic.short_description = 'Topic'
 
     def __str__(self):
         """String for representing the Course Model object."""
@@ -72,6 +85,8 @@ class Teacher(models.Model):
     """Model representing a teacher."""
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField(verbose_name='Birthday', blank=True, default=datetime.datetime.now)
+    email = models.CharField(max_length=100)
 
     class Meta:
         ordering = ['last_name', 'first_name']
