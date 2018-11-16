@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from courses.models import Track, Topic, Teacher, Course
+from django.views import generic
 
 
 # Create your views here.
@@ -27,3 +28,20 @@ def index(request):
 
     # Render the HTML template index.html with the data in the context variable
     return render(request, 'index.html', context=context)
+
+
+class CourseListView(generic.ListView):
+    model = Course
+    paginate_by = 10
+
+# class CourseDetailView(generic.DetailView):
+#     model = Course
+def course_detail_view(request, primary_key):
+    course = get_object_or_404(Course, primary_key)
+    return render(request, 'courses/course_detail.html', context={'course': course})
+
+class TeacherListView(generic.ListView):
+    model = Teacher
+
+class TeacherDetailView(generic.DetailView):
+    model = Teacher
